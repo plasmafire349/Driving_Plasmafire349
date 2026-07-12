@@ -1,196 +1,587 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-
-// HTML embedded as base64 — no public/ folder needed on Render
-const HTML = Buffer.from('PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04IiAvPgo8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCIgLz4KPHRpdGxlPkFqb2tvcnR0aSBRdWl6IOKAlCBNdWx0aXBsYXllciBEcml2aW5nIFRoZW9yeTwvdGl0bGU+CjxzY3JpcHQgc3JjPSIvc29ja2V0LmlvL3NvY2tldC5pby5qcyI+PC9zY3JpcHQ+CjxzdHlsZT4KICA6cm9vdCB7CiAgICAtLW5hdnk6ICMwQjI1NDU7CiAgICAtLW5hdnktMjogIzEzMzE1QzsKICAgIC0tc2lnbi15ZWxsb3c6ICNGRkQ0MDA7CiAgICAtLXNpZ24tcmVkOiAjRDcyNjNEOwogICAgLS1zaWduLWJsdWU6ICMxRjZGRUI7CiAgICAtLXdoaXRlOiAjRjdGOUZDOwogICAgLS1ncmV5OiAjOENBMEIzOwogICAgLS1zdWNjZXNzOiAjMkZCRjcxOwogICAgLS1mb250LWRpc3BsYXk6ICdBcmlhbCBCbGFjaycsICdIZWx2ZXRpY2EgTmV1ZScsIHNhbnMtc2VyaWY7CiAgICAtLWZvbnQtYm9keTogJ1NlZ29lIFVJJywgUm9ib3RvLCBzYW5zLXNlcmlmOwogIH0KICAqIHsgYm94LXNpemluZzogYm9yZGVyLWJveDsgfQogIGJvZHkgewogICAgbWFyZ2luOiAwOwogICAgbWluLWhlaWdodDogMTAwdmg7CiAgICBiYWNrZ3JvdW5kOiByYWRpYWwtZ3JhZGllbnQoY2lyY2xlIGF0IDIwJSAtMTAlLCAjMTY0MDZlIDAlLCB2YXIoLS1uYXZ5KSA1NSUsICMwNjEyMjUgMTAwJSk7CiAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1ib2R5KTsKICAgIGNvbG9yOiB2YXIoLS13aGl0ZSk7CiAgICBkaXNwbGF5OiBmbGV4OwogICAgYWxpZ24taXRlbXM6IGNlbnRlcjsKICAgIGp1c3RpZnktY29udGVudDogY2VudGVyOwogICAgcGFkZGluZzogMjBweDsKICB9CiAgLmNhcmQgewogICAgd2lkdGg6IDEwMCU7CiAgICBtYXgtd2lkdGg6IDUyMHB4OwogICAgYmFja2dyb3VuZDogcmdiYSgyNTUsMjU1LDI1NSwwLjA1KTsKICAgIGJvcmRlcjogMnB4IHNvbGlkIHJnYmEoMjU1LDI1NSwyNTUsMC4xMik7CiAgICBib3JkZXItcmFkaXVzOiAyMHB4OwogICAgcGFkZGluZzogMzJweDsKICAgIGJhY2tkcm9wLWZpbHRlcjogYmx1cig2cHgpOwogICAgYm94LXNoYWRvdzogMCAyMHB4IDYwcHggcmdiYSgwLDAsMCwwLjQpOwogIH0KICBoMSB7CiAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1kaXNwbGF5KTsKICAgIGZvbnQtc2l6ZTogMjhweDsKICAgIGxldHRlci1zcGFjaW5nOiAwLjVweDsKICAgIG1hcmdpbjogMCAwIDRweDsKICAgIGRpc3BsYXk6IGZsZXg7CiAgICBhbGlnbi1pdGVtczogY2VudGVyOwogICAgZ2FwOiAxMHB4OwogIH0KICAuc3VidGl0bGUgeyBjb2xvcjogdmFyKC0tZ3JleSk7IG1hcmdpbi1ib3R0b206IDI0cHg7IGZvbnQtc2l6ZTogMTRweDsgfQogIC5yb2FkLXNpZ24gewogICAgd2lkdGg6IDQ2cHg7IGhlaWdodDogNDZweDsKICAgIGJhY2tncm91bmQ6IHZhcigtLXNpZ24tcmVkKTsKICAgIGJvcmRlci1yYWRpdXM6IDUwJTsKICAgIGRpc3BsYXk6IGZsZXg7IGFsaWduLWl0ZW1zOiBjZW50ZXI7IGp1c3RpZnktY29udGVudDogY2VudGVyOwogICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtZGlzcGxheSk7CiAgICBjb2xvcjogdmFyKC0td2hpdGUpOwogICAgZm9udC1zaXplOiAyMnB4OwogICAgZmxleC1zaHJpbms6IDA7CiAgICBib3gtc2hhZG93OiAwIDRweCAxMHB4IHJnYmEoMjE1LDM4LDYxLDAuNCk7CiAgfQogIGlucHV0W3R5cGU9dGV4dF0gewogICAgd2lkdGg6IDEwMCU7CiAgICBwYWRkaW5nOiAxNHB4IDE2cHg7CiAgICBib3JkZXItcmFkaXVzOiAxMnB4OwogICAgYm9yZGVyOiAycHggc29saWQgcmdiYSgyNTUsMjU1LDI1NSwwLjE1KTsKICAgIGJhY2tncm91bmQ6IHJnYmEoMjU1LDI1NSwyNTUsMC4wNik7CiAgICBjb2xvcjogdmFyKC0td2hpdGUpOwogICAgZm9udC1zaXplOiAxNnB4OwogICAgbWFyZ2luLWJvdHRvbTogMTRweDsKICAgIG91dGxpbmU6IG5vbmU7CiAgfQogIGlucHV0W3R5cGU9dGV4dF06Zm9jdXMgeyBib3JkZXItY29sb3I6IHZhcigtLXNpZ24teWVsbG93KTsgfQogIGlucHV0W3R5cGU9dGV4dF06OnBsYWNlaG9sZGVyIHsgY29sb3I6IHZhcigtLWdyZXkpOyB9CiAgYnV0dG9uIHsKICAgIHdpZHRoOiAxMDAlOwogICAgcGFkZGluZzogMTRweDsKICAgIGJvcmRlci1yYWRpdXM6IDEycHg7CiAgICBib3JkZXI6IG5vbmU7CiAgICBmb250LXNpemU6IDE2cHg7CiAgICBmb250LXdlaWdodDogNzAwOwogICAgY3Vyc29yOiBwb2ludGVyOwogICAgbWFyZ2luLWJvdHRvbTogMTBweDsKICAgIHRyYW5zaXRpb246IHRyYW5zZm9ybSAwLjFzIGVhc2UsIGZpbHRlciAwLjE1cyBlYXNlOwogICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtYm9keSk7CiAgfQogIGJ1dHRvbjpob3ZlciB7IGZpbHRlcjogYnJpZ2h0bmVzcygxLjA4KTsgfQogIGJ1dHRvbjphY3RpdmUgeyB0cmFuc2Zvcm06IHNjYWxlKDAuOTgpOyB9CiAgLmJ0bi1wcmltYXJ5IHsgYmFja2dyb3VuZDogdmFyKC0tc2lnbi15ZWxsb3cpOyBjb2xvcjogdmFyKC0tbmF2eSk7IH0KICAuYnRuLXNlY29uZGFyeSB7IGJhY2tncm91bmQ6IHRyYW5zcGFyZW50OyBjb2xvcjogdmFyKC0td2hpdGUpOyBib3JkZXI6IDJweCBzb2xpZCByZ2JhKDI1NSwyNTUsMjU1LDAuMjUpOyB9CiAgLmJ0bi1ibHVlIHsgYmFja2dyb3VuZDogdmFyKC0tc2lnbi1ibHVlKTsgY29sb3I6IHdoaXRlOyB9CiAgLmhpZGRlbiB7IGRpc3BsYXk6IG5vbmUgIWltcG9ydGFudDsgfQogIC5yb29tLWNvZGUgewogICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtZGlzcGxheSk7CiAgICBmb250LXNpemU6IDQwcHg7CiAgICBsZXR0ZXItc3BhY2luZzogNnB4OwogICAgdGV4dC1hbGlnbjogY2VudGVyOwogICAgY29sb3I6IHZhcigtLXNpZ24teWVsbG93KTsKICAgIG1hcmdpbjogMTBweCAwIDIwcHg7CiAgfQogIC5wbGF5ZXJzLWxpc3QgeyBsaXN0LXN0eWxlOiBub25lOyBwYWRkaW5nOiAwOyBtYXJnaW46IDAgMCAyMHB4OyB9CiAgLnBsYXllcnMtbGlzdCBsaSB7CiAgICBkaXNwbGF5OiBmbGV4OyBqdXN0aWZ5LWNvbnRlbnQ6IHNwYWNlLWJldHdlZW47IGFsaWduLWl0ZW1zOiBjZW50ZXI7CiAgICBwYWRkaW5nOiAxMHB4IDE0cHg7CiAgICBiYWNrZ3JvdW5kOiByZ2JhKDI1NSwyNTUsMjU1LDAuMDYpOwogICAgYm9yZGVyLXJhZGl1czogMTBweDsKICAgIG1hcmdpbi1ib3R0b206IDhweDsKICAgIGZvbnQtd2VpZ2h0OiA2MDA7CiAgICBhbmltYXRpb246IHBvcEluIDAuMjVzIGVhc2U7CiAgfQogIEBrZXlmcmFtZXMgcG9wSW4geyBmcm9tIHsgb3BhY2l0eTowOyB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoNnB4KTt9IHRvIHtvcGFjaXR5OjE7IHRyYW5zZm9ybTp0cmFuc2xhdGVZKDApO30gfQogIC5zY29yZS1waWxsIHsKICAgIGJhY2tncm91bmQ6IHZhcigtLXNpZ24teWVsbG93KTsgY29sb3I6IHZhcigtLW5hdnkpOwogICAgcGFkZGluZzogM3B4IDEwcHg7IGJvcmRlci1yYWRpdXM6IDk5OXB4OyBmb250LXNpemU6IDEzcHg7CiAgfQogIC5wcm9ncmVzcy10cmFjayB7CiAgICB3aWR0aDogMTAwJTsgaGVpZ2h0OiAxMHB4OyBib3JkZXItcmFkaXVzOiA5OTlweDsKICAgIGJhY2tncm91bmQ6IHJnYmEoMjU1LDI1NSwyNTUsMC4xKTsKICAgIG92ZXJmbG93OiBoaWRkZW47CiAgICBtYXJnaW4tYm90dG9tOiAyMHB4OwogIH0KICAucHJvZ3Jlc3MtZmlsbCB7CiAgICBoZWlnaHQ6IDEwMCU7IGJhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCg5MGRlZywgdmFyKC0tc2lnbi15ZWxsb3cpLCB2YXIoLS1zaWduLXJlZCkpOwogICAgd2lkdGg6IDEwMCU7CiAgICB0cmFuc2l0aW9uOiB3aWR0aCAwLjFzIGxpbmVhcjsKICB9CiAgLnEtbGFiZWwgeyBjb2xvcjogdmFyKC0tZ3JleSk7IGZvbnQtc2l6ZTogMTNweDsgbWFyZ2luLWJvdHRvbTogNnB4OyBsZXR0ZXItc3BhY2luZzogMXB4OyB0ZXh0LXRyYW5zZm9ybTogdXBwZXJjYXNlOyB9CiAgLnF1ZXN0aW9uLXRleHQgeyBmb250LXNpemU6IDIwcHg7IGZvbnQtd2VpZ2h0OiA3MDA7IG1hcmdpbi1ib3R0b206IDIwcHg7IGxpbmUtaGVpZ2h0OiAxLjQ7IH0KICAub3B0aW9uLWJ0biB7CiAgICB3aWR0aDogMTAwJTsKICAgIHRleHQtYWxpZ246IGxlZnQ7CiAgICBwYWRkaW5nOiAxNnB4OwogICAgYm9yZGVyLXJhZGl1czogMTJweDsKICAgIGJvcmRlcjogMnB4IHNvbGlkIHJnYmEoMjU1LDI1NSwyNTUsMC4xNSk7CiAgICBiYWNrZ3JvdW5kOiByZ2JhKDI1NSwyNTUsMjU1LDAuMDYpOwogICAgY29sb3I6IHZhcigtLXdoaXRlKTsKICAgIGZvbnQtc2l6ZTogMTVweDsKICAgIG1hcmdpbi1ib3R0b206IDEwcHg7CiAgICBjdXJzb3I6IHBvaW50ZXI7CiAgICB0cmFuc2l0aW9uOiBhbGwgMC4xNXMgZWFzZTsKICB9CiAgLm9wdGlvbi1idG46aG92ZXI6bm90KDpkaXNhYmxlZCkgeyBib3JkZXItY29sb3I6IHZhcigtLXNpZ24teWVsbG93KTsgYmFja2dyb3VuZDogcmdiYSgyNTUsMjEyLDAsMC4wOCk7IH0KICAub3B0aW9uLWJ0bi5jb3JyZWN0IHsgYmFja2dyb3VuZDogdmFyKC0tc3VjY2Vzcyk7IGJvcmRlci1jb2xvcjogdmFyKC0tc3VjY2Vzcyk7IGNvbG9yOiB3aGl0ZTsgfQogIC5vcHRpb24tYnRuLndyb25nIHsgYmFja2dyb3VuZDogdmFyKC0tc2lnbi1yZWQpOyBib3JkZXItY29sb3I6IHZhcigtLXNpZ24tcmVkKTsgY29sb3I6IHdoaXRlOyB9CiAgLm9wdGlvbi1idG46ZGlzYWJsZWQgeyBjdXJzb3I6IGRlZmF1bHQ7IG9wYWNpdHk6IDAuNzsgfQogIC5mZWVkYmFjayB7CiAgICB0ZXh0LWFsaWduOiBjZW50ZXI7IGZvbnQtc2l6ZTogMThweDsgZm9udC13ZWlnaHQ6IDcwMDsgbWFyZ2luOiAxMHB4IDAgMjBweDsKICAgIGFuaW1hdGlvbjogcG9wSW4gMC4zcyBlYXNlOwogIH0KICAucG9kaXVtIHsKICAgIGRpc3BsYXk6IGZsZXg7IGFsaWduLWl0ZW1zOiBmbGV4LWVuZDsganVzdGlmeS1jb250ZW50OiBjZW50ZXI7IGdhcDogMTJweDsKICAgIG1hcmdpbjogMzBweCAwIDIwcHg7CiAgfQogIC5wb2RpdW0tc3BvdCB7IHRleHQtYWxpZ246IGNlbnRlcjsgfQogIC5wb2RpdW0tYmFyIHsKICAgIHdpZHRoOiA3NnB4OyBib3JkZXItcmFkaXVzOiAxMHB4IDEwcHggMCAwOwogICAgZGlzcGxheTogZmxleDsgYWxpZ24taXRlbXM6IGZsZXgtc3RhcnQ7IGp1c3RpZnktY29udGVudDogY2VudGVyOwogICAgcGFkZGluZy10b3A6IDhweDsgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtZGlzcGxheSk7IGZvbnQtc2l6ZTogMjJweDsKICAgIGFuaW1hdGlvbjogZ3Jvd1VwIDAuNnMgZWFzZTsKICB9CiAgQGtleWZyYW1lcyBncm93VXAgeyBmcm9tIHsgaGVpZ2h0OiAwICFpbXBvcnRhbnQ7IH0gfQogIC5wMSAucG9kaXVtLWJhciB7IGhlaWdodDogMTQwcHg7IGJhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCgxODBkZWcsIHZhcigtLXNpZ24teWVsbG93KSwgI0UwQjIwMCk7IGNvbG9yOiB2YXIoLS1uYXZ5KTsgfQogIC5wMiAucG9kaXVtLWJhciB7IGhlaWdodDogMTAwcHg7IGJhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCgxODBkZWcsICNDOEQxREIsICM5N0E1QjIpOyBjb2xvcjogdmFyKC0tbmF2eSk7IH0KICAucDMgLnBvZGl1bS1iYXIgeyBoZWlnaHQ6IDcwcHg7IGJhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCgxODBkZWcsICNDRDhBNEUsICNBOTY4MkYpOyBjb2xvcjogd2hpdGU7IH0KICAucG9kaXVtLW5hbWUgeyBmb250LXdlaWdodDogNzAwOyBtYXJnaW4tdG9wOiA4cHg7IGZvbnQtc2l6ZTogMTRweDsgfQogIC5wb2RpdW0tc2NvcmUgeyBjb2xvcjogdmFyKC0tc2lnbi15ZWxsb3cpOyBmb250LXNpemU6IDEzcHg7IH0KICAuY29uZmV0dGkgeyBwb3NpdGlvbjogZml4ZWQ7IHRvcDogLTEwcHg7IHdpZHRoOiA4cHg7IGhlaWdodDogMTRweDsgb3BhY2l0eTogMC45OyBhbmltYXRpb246IGZhbGwgbGluZWFyIGZvcndhcmRzOyB6LWluZGV4OiA1OyB9CiAgQGtleWZyYW1lcyBmYWxsIHsKICAgIHRvIHsgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKDExMHZoKSByb3RhdGUoMzYwZGVnKTsgb3BhY2l0eTogMTsgfQogIH0KICAuZXJyb3ItbXNnIHsgY29sb3I6IHZhcigtLXNpZ24teWVsbG93KTsgYmFja2dyb3VuZDogcmdiYSgyMTUsMzgsNjEsMC4yNSk7IGJvcmRlcjogMXB4IHNvbGlkIHZhcigtLXNpZ24tcmVkKTsgcGFkZGluZzogMTBweCAxNHB4OyBib3JkZXItcmFkaXVzOiAxMHB4OyBtYXJnaW4tYm90dG9tOiAxNHB4OyBmb250LXNpemU6IDE0cHg7IH0KICAuY29kZS1oaW50IHsgdGV4dC1hbGlnbjogY2VudGVyOyBjb2xvcjogdmFyKC0tZ3JleSk7IGZvbnQtc2l6ZTogMTNweDsgbWFyZ2luLXRvcDogLThweDsgbWFyZ2luLWJvdHRvbTogMTZweDsgfQogIC5zdHJpcGUgeyBoZWlnaHQ6IDRweDsgYmFja2dyb3VuZDogcmVwZWF0aW5nLWxpbmVhci1ncmFkaWVudCg5MGRlZywgdmFyKC0tc2lnbi15ZWxsb3cpIDAgMTZweCwgdHJhbnNwYXJlbnQgMTZweCAzMHB4KTsgYm9yZGVyLXJhZGl1czogNHB4OyBtYXJnaW46IDE4cHggMCAyNHB4OyBvcGFjaXR5OiAwLjY7IH0KPC9zdHlsZT4KPC9oZWFkPgo8Ym9keT4KCjxkaXYgY2xhc3M9ImNhcmQiIGlkPSJhcHAiPgoKICA8IS0tIEhPTUUgLS0+CiAgPGRpdiBpZD0idmlldy1ob21lIj4KICAgIDxoMT48c3BhbiBjbGFzcz0icm9hZC1zaWduIj7wn5qmPC9zcGFuPiBBam9rb3J0dGkgUXVpejwvaDE+CiAgICA8ZGl2IGNsYXNzPSJzdWJ0aXRsZSI+RmlubmlzaCBkcml2aW5nIHRoZW9yeSDigJQgcmFjZSB5b3VyIGZyaWVuZHMgdG8gdGhlIHRvcCBzY29yZTwvZGl2PgogICAgPGRpdiBjbGFzcz0ic3RyaXBlIj48L2Rpdj4KICAgIDxkaXYgaWQ9ImhvbWUtZXJyb3IiPjwvZGl2PgogICAgPGlucHV0IHR5cGU9InRleHQiIGlkPSJuYW1lLWlucHV0IiBwbGFjZWhvbGRlcj0iWW91ciBuYW1lIiBtYXhsZW5ndGg9IjE2IiAvPgogICAgPGJ1dHRvbiBjbGFzcz0iYnRuLXByaW1hcnkiIGlkPSJidG4tY3JlYXRlIj5DcmVhdGUgYSByb29tPC9idXR0b24+CiAgICA8aW5wdXQgdHlwZT0idGV4dCIgaWQ9ImpvaW4tY29kZS1pbnB1dCIgcGxhY2Vob2xkZXI9IlJvb20gY29kZSIgbWF4bGVuZ3RoPSI1IiBzdHlsZT0idGV4dC10cmFuc2Zvcm06dXBwZXJjYXNlIiAvPgogICAgPGJ1dHRvbiBjbGFzcz0iYnRuLWJsdWUiIGlkPSJidG4tam9pbiI+Sm9pbiByb29tPC9idXR0b24+CiAgPC9kaXY+CgogIDwhLS0gTE9CQlkgLS0+CiAgPGRpdiBpZD0idmlldy1sb2JieSIgY2xhc3M9ImhpZGRlbiI+CiAgICA8aDE+PHNwYW4gY2xhc3M9InJvYWQtc2lnbiI+8J+PgTwvc3Bhbj4gTG9iYnk8L2gxPgogICAgPGRpdiBjbGFzcz0ic3VidGl0bGUiPlNoYXJlIHRoaXMgY29kZSB3aXRoIHlvdXIgZnJpZW5kczwvZGl2PgogICAgPGRpdiBjbGFzcz0icm9vbS1jb2RlIiBpZD0ibG9iYnktY29kZSI+LS0tLS08L2Rpdj4KICAgIDxkaXYgY2xhc3M9ImNvZGUtaGludCI+V2FpdGluZyBmb3IgcGxheWVycyB0byBqb2luLi4uPC9kaXY+CiAgICA8dWwgY2xhc3M9InBsYXllcnMtbGlzdCIgaWQ9ImxvYmJ5LXBsYXllcnMiPjwvdWw+CiAgICA8YnV0dG9uIGNsYXNzPSJidG4tcHJpbWFyeSBoaWRkZW4iIGlkPSJidG4tc3RhcnQiPlN0YXJ0IGdhbWU8L2J1dHRvbj4KICAgIDxkaXYgaWQ9ImxvYmJ5LXdhaXQtbXNnIiBjbGFzcz0ic3VidGl0bGUiIHN0eWxlPSJ0ZXh0LWFsaWduOmNlbnRlcjsiPldhaXRpbmcgZm9yIHRoZSBob3N0IHRvIHN0YXJ0Li4uPC9kaXY+CiAgPC9kaXY+CgogIDwhLS0gUVVFU1RJT04gLS0+CiAgPGRpdiBpZD0idmlldy1xdWVzdGlvbiIgY2xhc3M9ImhpZGRlbiI+CiAgICA8ZGl2IGNsYXNzPSJxLWxhYmVsIiBpZD0icS1wcm9ncmVzcyI+UXVlc3Rpb24gMSAvIDEwPC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJwcm9ncmVzcy10cmFjayI+PGRpdiBjbGFzcz0icHJvZ3Jlc3MtZmlsbCIgaWQ9InRpbWVyLWJhciI+PC9kaXY+PC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJxdWVzdGlvbi10ZXh0IiBpZD0icS10ZXh0Ij48L2Rpdj4KICAgIDxkaXYgaWQ9Im9wdGlvbnMtY29udGFpbmVyIj48L2Rpdj4KICA8L2Rpdj4KCiAgPCEtLSBSRVZFQUwgLS0+CiAgPGRpdiBpZD0idmlldy1yZXZlYWwiIGNsYXNzPSJoaWRkZW4iPgogICAgPGRpdiBjbGFzcz0iZmVlZGJhY2siIGlkPSJyZXZlYWwtZmVlZGJhY2siPjwvZGl2PgogICAgPGRpdiBjbGFzcz0ic3VidGl0bGUiIHN0eWxlPSJ0ZXh0LWFsaWduOmNlbnRlcjsgbWFyZ2luLWJvdHRvbToxNHB4OyI+U3RhbmRpbmdzPC9kaXY+CiAgICA8dWwgY2xhc3M9InBsYXllcnMtbGlzdCIgaWQ9InJldmVhbC1wbGF5ZXJzIj48L3VsPgogIDwvZGl2PgoKICA8IS0tIEdBTUUgT1ZFUiAtLT4KICA8ZGl2IGlkPSJ2aWV3LWdhbWVvdmVyIiBjbGFzcz0iaGlkZGVuIj4KICAgIDxoMSBzdHlsZT0ianVzdGlmeS1jb250ZW50OmNlbnRlcjsiPjxzcGFuIGNsYXNzPSJyb2FkLXNpZ24iPvCfj4Y8L3NwYW4+IEdhbWUgT3ZlciE8L2gxPgogICAgPGRpdiBjbGFzcz0icG9kaXVtIiBpZD0icG9kaXVtIj48L2Rpdj4KICAgIDx1bCBjbGFzcz0icGxheWVycy1saXN0IiBpZD0iZmluYWwtcGxheWVycyI+PC91bD4KICAgIDxidXR0b24gY2xhc3M9ImJ0bi1wcmltYXJ5IGhpZGRlbiIgaWQ9ImJ0bi1hZ2FpbiI+UGxheSBhZ2FpbjwvYnV0dG9uPgogICAgPGRpdiBpZD0iZ2FtZW92ZXItd2FpdCIgY2xhc3M9InN1YnRpdGxlIGhpZGRlbiIgc3R5bGU9InRleHQtYWxpZ246Y2VudGVyOyI+V2FpdGluZyBmb3IgaG9zdCB0byByZXN0YXJ0Li4uPC9kaXY+CiAgPC9kaXY+Cgo8L2Rpdj4KCjxzY3JpcHQ+CmNvbnN0IHNvY2tldCA9IGlvKCk7CmxldCBteUNvZGUgPSBudWxsOwpsZXQgaXNIb3N0ID0gZmFsc2U7CmxldCB0aW1lckludGVydmFsID0gbnVsbDsKCmNvbnN0IHZpZXdzID0gWydob21lJywnbG9iYnknLCdxdWVzdGlvbicsJ3JldmVhbCcsJ2dhbWVvdmVyJ107CmZ1bmN0aW9uIHNob3codmlldykgewogIHZpZXdzLmZvckVhY2godiA9PiBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndmlldy0nK3YpLmNsYXNzTGlzdC50b2dnbGUoJ2hpZGRlbicsIHYgIT09IHZpZXcpKTsKfQoKLy8gLS0tLS0tLS0tLSBIT01FIC0tLS0tLS0tLS0KZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2J0bi1jcmVhdGUnKS5vbmNsaWNrID0gKCkgPT4gewogIGNvbnN0IG5hbWUgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbmFtZS1pbnB1dCcpLnZhbHVlLnRyaW0oKTsKICBpZiAoIW5hbWUpIHJldHVybiBzaG93SG9tZUVycm9yKCdFbnRlciB5b3VyIG5hbWUgZmlyc3QuJyk7CiAgc29ja2V0LmVtaXQoJ2NyZWF0ZVJvb20nLCBuYW1lKTsKfTsKZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2J0bi1qb2luJykub25jbGljayA9ICgpID0+IHsKICBjb25zdCBuYW1lID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ25hbWUtaW5wdXQnKS52YWx1ZS50cmltKCk7CiAgY29uc3QgY29kZSA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdqb2luLWNvZGUtaW5wdXQnKS52YWx1ZS50cmltKCk7CiAgaWYgKCFuYW1lKSByZXR1cm4gc2hvd0hvbWVFcnJvcignRW50ZXIgeW91ciBuYW1lIGZpcnN0LicpOwogIGlmICghY29kZSkgcmV0dXJuIHNob3dIb21lRXJyb3IoJ0VudGVyIGEgcm9vbSBjb2RlLicpOwogIHNvY2tldC5lbWl0KCdqb2luUm9vbScsIHsgY29kZSwgbmFtZSB9KTsKfTsKZnVuY3Rpb24gc2hvd0hvbWVFcnJvcihtc2cpIHsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnaG9tZS1lcnJvcicpLmlubmVySFRNTCA9IGA8ZGl2IGNsYXNzPSJlcnJvci1tc2ciPiR7bXNnfTwvZGl2PmA7Cn0KCnNvY2tldC5vbignZXJyb3JNc2cnLCAobXNnKSA9PiBzaG93SG9tZUVycm9yKG1zZykpOwoKc29ja2V0Lm9uKCdyb29tQ3JlYXRlZCcsICh7IGNvZGUsIHBsYXllcnMsIGlzSG9zdDogaG9zdCB9KSA9PiB7CiAgbXlDb2RlID0gY29kZTsgaXNIb3N0ID0gaG9zdDsKICBlbnRlckxvYmJ5KGNvZGUsIHBsYXllcnMpOwp9KTsKc29ja2V0Lm9uKCdyb29tSm9pbmVkJywgKHsgY29kZSwgcGxheWVycywgaXNIb3N0OiBob3N0IH0pID0+IHsKICBteUNvZGUgPSBjb2RlOyBpc0hvc3QgPSBob3N0OwogIGVudGVyTG9iYnkoY29kZSwgcGxheWVycyk7Cn0pOwoKZnVuY3Rpb24gZW50ZXJMb2JieShjb2RlLCBwbGF5ZXJzKSB7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2xvYmJ5LWNvZGUnKS50ZXh0Q29udGVudCA9IGNvZGU7CiAgcmVuZGVyUGxheWVycygnbG9iYnktcGxheWVycycsIHBsYXllcnMpOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdidG4tc3RhcnQnKS5jbGFzc0xpc3QudG9nZ2xlKCdoaWRkZW4nLCAhaXNIb3N0KTsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbG9iYnktd2FpdC1tc2cnKS5jbGFzc0xpc3QudG9nZ2xlKCdoaWRkZW4nLCBpc0hvc3QpOwogIHNob3coJ2xvYmJ5Jyk7Cn0KCnNvY2tldC5vbignbG9iYnlVcGRhdGUnLCAoeyBwbGF5ZXJzIH0pID0+IHsKICByZW5kZXJQbGF5ZXJzKCdsb2JieS1wbGF5ZXJzJywgcGxheWVycyk7Cn0pOwoKZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2J0bi1zdGFydCcpLm9uY2xpY2sgPSAoKSA9PiB7CiAgc29ja2V0LmVtaXQoJ3N0YXJ0R2FtZScsIG15Q29kZSk7Cn07CgpmdW5jdGlvbiByZW5kZXJQbGF5ZXJzKGVsSWQsIHBsYXllcnMpIHsKICBjb25zdCBlbCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKGVsSWQpOwogIGVsLmlubmVySFRNTCA9IHBsYXllcnMubWFwKHAgPT4gYDxsaT48c3Bhbj4ke2VzY2FwZUh0bWwocC5uYW1lKX08L3NwYW4+PHNwYW4gY2xhc3M9InNjb3JlLXBpbGwiPiR7cC5zY29yZX0gcHRzPC9zcGFuPjwvbGk+YCkuam9pbignJyk7Cn0KCmZ1bmN0aW9uIGVzY2FwZUh0bWwocykgewogIGNvbnN0IGQgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCdkaXYnKTsgZC50ZXh0Q29udGVudCA9IHM7IHJldHVybiBkLmlubmVySFRNTDsKfQoKLy8gLS0tLS0tLS0tLSBRVUVTVElPTiAtLS0tLS0tLS0tCnNvY2tldC5vbigncXVlc3Rpb24nLCAoeyBpbmRleCwgdG90YWwsIHEsIG9wdGlvbnMsIHRpbWVNcyB9KSA9PiB7CiAgc2hvdygncXVlc3Rpb24nKTsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncS1wcm9ncmVzcycpLnRleHRDb250ZW50ID0gYFF1ZXN0aW9uICR7aW5kZXh9IC8gJHt0b3RhbH1gOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdxLXRleHQnKS50ZXh0Q29udGVudCA9IHE7CiAgY29uc3QgY29udGFpbmVyID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ29wdGlvbnMtY29udGFpbmVyJyk7CiAgY29udGFpbmVyLmlubmVySFRNTCA9ICcnOwogIG9wdGlvbnMuZm9yRWFjaCgob3B0LCBpKSA9PiB7CiAgICBjb25zdCBidG4gPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCdidXR0b24nKTsKICAgIGJ0bi5jbGFzc05hbWUgPSAnb3B0aW9uLWJ0bic7CiAgICBidG4udGV4dENvbnRlbnQgPSBvcHQ7CiAgICBidG4ub25jbGljayA9ICgpID0+IHNlbGVjdEFuc3dlcihpLCBidG4pOwogICAgY29udGFpbmVyLmFwcGVuZENoaWxkKGJ0bik7CiAgfSk7CgogIGNvbnN0IGJhciA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd0aW1lci1iYXInKTsKICBiYXIuc3R5bGUudHJhbnNpdGlvbiA9ICdub25lJzsKICBiYXIuc3R5bGUud2lkdGggPSAnMTAwJSc7CiAgcmVxdWVzdEFuaW1hdGlvbkZyYW1lKCgpID0+IHsKICAgIGJhci5zdHlsZS50cmFuc2l0aW9uID0gYHdpZHRoICR7dGltZU1zfW1zIGxpbmVhcmA7CiAgICBiYXIuc3R5bGUud2lkdGggPSAnMCUnOwogIH0pOwp9KTsKCmxldCBhbnN3ZXJlZCA9IGZhbHNlOwpmdW5jdGlvbiBzZWxlY3RBbnN3ZXIoaSwgYnRuKSB7CiAgaWYgKGFuc3dlcmVkKSByZXR1cm47CiAgYW5zd2VyZWQgPSB0cnVlOwogIGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoJy5vcHRpb24tYnRuJykuZm9yRWFjaChiID0+IGIuZGlzYWJsZWQgPSB0cnVlKTsKICBidG4uc3R5bGUuYm9yZGVyQ29sb3IgPSAndmFyKC0tc2lnbi15ZWxsb3cpJzsKICBzb2NrZXQuZW1pdCgnc3VibWl0QW5zd2VyJywgeyBjb2RlOiBteUNvZGUsIGNob2ljZTogaSB9KTsKfQoKc29ja2V0Lm9uKCdhbnN3ZXJSZWNlaXZlZCcsICh7IGNvcnJlY3QsIGdhaW5lZCB9KSA9PiB7CiAgLy8gc3VidGxlIGltbWVkaWF0ZSBmZWVkYmFjayBoYW5kbGVkIGF0IHJldmVhbAp9KTsKCnNvY2tldC5vbigncmV2ZWFsJywgKHsgY29ycmVjdCwgcGxheWVycyB9KSA9PiB7CiAgYW5zd2VyZWQgPSBmYWxzZTsKICBjb25zdCBidG5zID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgnLm9wdGlvbi1idG4nKTsKICBidG5zLmZvckVhY2goKGIsIGkpID0+IHsKICAgIGlmIChpID09PSBjb3JyZWN0KSBiLmNsYXNzTGlzdC5hZGQoJ2NvcnJlY3QnKTsKICB9KTsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncmV2ZWFsLWZlZWRiYWNrJykudGV4dENvbnRlbnQgPSAnQ29ycmVjdCBhbnN3ZXIgaGlnaGxpZ2h0ZWQhJzsKICByZW5kZXJQbGF5ZXJzKCdyZXZlYWwtcGxheWVycycsIHBsYXllcnMpOwogIHNob3coJ3JldmVhbCcpOwp9KTsKCi8vIC0tLS0tLS0tLS0gR0FNRSBPVkVSIC0tLS0tLS0tLS0Kc29ja2V0Lm9uKCdnYW1lT3ZlcicsICh7IHBsYXllcnMgfSkgPT4gewogIHNob3coJ2dhbWVvdmVyJyk7CiAgcmVuZGVyUGxheWVycygnZmluYWwtcGxheWVycycsIHBsYXllcnMpOwogIGJ1aWxkUG9kaXVtKHBsYXllcnMpOwogIGxhdW5jaENvbmZldHRpKCk7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2J0bi1hZ2FpbicpLmNsYXNzTGlzdC50b2dnbGUoJ2hpZGRlbicsICFpc0hvc3QpOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdnYW1lb3Zlci13YWl0JykuY2xhc3NMaXN0LnRvZ2dsZSgnaGlkZGVuJywgaXNIb3N0KTsKfSk7CgpmdW5jdGlvbiBidWlsZFBvZGl1bShwbGF5ZXJzKSB7CiAgY29uc3QgcG9kaXVtID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3BvZGl1bScpOwogIHBvZGl1bS5pbm5lckhUTUwgPSAnJzsKICBjb25zdCBvcmRlciA9IFsxLDAsMl07IC8vIDJuZCwgMXN0LCAzcmQgdmlzdWFsIG9yZGVyCiAgY29uc3QgbWVkYWxzID0gezA6J/CfpYcnLDE6J/CfpYgnLDI6J/CfpYknfTsKICBvcmRlci5mb3JFYWNoKHJhbmsgPT4gewogICAgY29uc3QgcCA9IHBsYXllcnNbcmFua107CiAgICBpZiAoIXApIHJldHVybjsKICAgIGNvbnN0IGRpdiA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ2RpdicpOwogICAgZGl2LmNsYXNzTmFtZSA9IGBwb2RpdW0tc3BvdCBwJHtyYW5rKzF9YDsKICAgIGRpdi5pbm5lckhUTUwgPSBgCiAgICAgIDxkaXYgY2xhc3M9InBvZGl1bS1iYXIiPiR7bWVkYWxzW3JhbmtdfTwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJwb2RpdW0tbmFtZSI+JHtlc2NhcGVIdG1sKHAubmFtZSl9PC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9InBvZGl1bS1zY29yZSI+JHtwLnNjb3JlfSBwdHM8L2Rpdj4KICAgIGA7CiAgICBwb2RpdW0uYXBwZW5kQ2hpbGQoZGl2KTsKICB9KTsKfQoKZnVuY3Rpb24gbGF1bmNoQ29uZmV0dGkoKSB7CiAgY29uc3QgY29sb3JzID0gWycjRkZENDAwJywnI0Q3MjYzRCcsJyMxRjZGRUInLCcjMkZCRjcxJywnI0Y3RjlGQyddOwogIGZvciAobGV0IGkgPSAwOyBpIDwgNjA7IGkrKykgewogICAgY29uc3QgZWwgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCdkaXYnKTsKICAgIGVsLmNsYXNzTmFtZSA9ICdjb25mZXR0aSc7CiAgICBlbC5zdHlsZS5sZWZ0ID0gTWF0aC5yYW5kb20oKSAqIDEwMCArICd2dyc7CiAgICBlbC5zdHlsZS5iYWNrZ3JvdW5kID0gY29sb3JzW01hdGguZmxvb3IoTWF0aC5yYW5kb20oKSpjb2xvcnMubGVuZ3RoKV07CiAgICBlbC5zdHlsZS5hbmltYXRpb25EdXJhdGlvbiA9ICgyICsgTWF0aC5yYW5kb20oKSAqIDIpICsgJ3MnOwogICAgZWwuc3R5bGUuYW5pbWF0aW9uRGVsYXkgPSAoTWF0aC5yYW5kb20oKSAqIDAuNSkgKyAncyc7CiAgICBkb2N1bWVudC5ib2R5LmFwcGVuZENoaWxkKGVsKTsKICAgIHNldFRpbWVvdXQoKCkgPT4gZWwucmVtb3ZlKCksIDQ1MDApOwogIH0KfQoKZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2J0bi1hZ2FpbicpLm9uY2xpY2sgPSAoKSA9PiB7CiAgc29ja2V0LmVtaXQoJ3BsYXlBZ2FpbicsIG15Q29kZSk7Cn07Cgpzb2NrZXQub24oJ2JhY2tUb0xvYmJ5JywgKHsgcGxheWVycyB9KSA9PiB7CiAgZW50ZXJMb2JieShteUNvZGUsIHBsYXllcnMpOwp9KTsKPC9zY3JpcHQ+CjwvYm9keT4KPC9odG1sPgo=', 'base64').toString('utf-8');
-
-app.get('/', (req, res) => {
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.send(HTML);
-});
-// ---------- Question bank: Finnish driving theory (B-license) ----------
-const QUESTIONS = [
-  { q: "What is the default speed limit in built-up areas in Finland?", options: ["30 km/h", "40 km/h", "50 km/h", "60 km/h"], correct: 2 },
-  { q: "What is the default speed limit outside built-up areas (no sign posted)?", options: ["60 km/h", "70 km/h", "80 km/h", "100 km/h"], correct: 2 },
-  { q: "On motorways, what is the general speed limit in summer?", options: ["100 km/h", "110 km/h", "120 km/h", "130 km/h"], correct: 2 },
-  { q: "What does a solid yellow line in the middle of the road mean?", options: ["Passing allowed both directions", "No passing allowed", "Bus lane only", "Parking allowed"], correct: 1 },
-  { q: "When must you use headlights while driving in Finland?", options: ["Only at night", "Only in fog", "At all times, day and night", "Only on motorways"], correct: 2 },
-  { q: "What is the legal blood alcohol limit for driving in Finland?", options: ["0.0 per mille", "0.2 per mille", "0.5 per mille", "0.8 per mille"], correct: 2 },
-  { q: "At a yield (give way) sign, you must:", options: ["Stop completely always", "Give way to traffic on the priority road", "Speed up to merge", "Only yield to buses"], correct: 1 },
-  { q: "What does a triangular road sign with a red border generally indicate?", options: ["Mandatory action", "Warning of danger ahead", "Prohibition", "Information"], correct: 1 },
-  { q: "How many hours of supervised practice driving are typically required before the B-license driving test in Finland?", options: ["10 hours", "18 hours", "25 hours", "40 hours"], correct: 1 },
-  { q: "What is the minimum age to start driving lessons for a car license (B) in Finland?", options: ["15 years", "16 years", "17 years", "18 years"], correct: 2 },
-  { q: "A round blue sign with a white arrow pointing up means:", options: ["No entry", "Mandatory direction: straight ahead", "Parking permitted", "One-way street ends"], correct: 1 },
-  { q: "When approaching a pedestrian crossing without traffic lights, you must:", options: ["Always stop", "Give way to pedestrians already on or clearly about to cross", "Only slow down if pedestrians wave", "Ignore unless a policeman is present"], correct: 1 },
-  { q: "What does a flashing yellow traffic light mean?", options: ["Stop completely", "Proceed with caution, no one has right of way automatically", "Right of way is yours", "Signal malfunction, wait for green"], correct: 1 },
-  { q: "In winter, when are winter tires mandatory in Finland?", options: ["November to March, always", "December 1 to end of February at minimum, and whenever conditions require", "Never mandatory", "Only for trucks"], correct: 1 },
-  { q: "What is the minimum tread depth for winter tires in Finland?", options: ["1.0 mm", "1.6 mm", "3.0 mm", "5.0 mm"], correct: 2 },
-  { q: "At an unmarked intersection with no signs, who has right of way?", options: ["The faster vehicle", "Vehicle coming from the right", "Vehicle coming from the left", "Whoever arrives first"], correct: 1 },
-  { q: "What does a red circular sign with a white horizontal bar mean?", options: ["No stopping", "No entry for all vehicles", "Speed limit ends", "Roundabout ahead"], correct: 1 },
-  { q: "When driving in a roundabout, who generally has priority?", options: ["Vehicles entering the roundabout", "Vehicles already in the roundabout", "Whichever vehicle is bigger", "Vehicles on the right"], correct: 1 },
-  { q: "What should you do if an ambulance approaches with sirens and lights on?", options: ["Speed up to get out of the way", "Ignore it if you have a green light", "Give way and let it pass safely, pulling aside if needed", "Stop in the middle of the lane"], correct: 2 },
-  { q: "What is the seatbelt rule for passengers in a car in Finland?", options: ["Only front seat passengers must wear one", "All passengers must wear seatbelts if available", "Only required outside cities", "Only the driver must wear one"], correct: 1 },
-  { q: "What does a blue rectangular sign with a white 'P' indicate?", options: ["Prohibited zone", "Parking allowed", "Petrol station", "Pedestrian zone"], correct: 1 },
-  { q: "When two vehicles meet on a narrow road with a passing place, who should use it?", options: ["The vehicle nearest to it, or the smaller/more maneuverable one", "Always the one going uphill", "Always the one going downhill", "Neither, both must stop"], correct: 0 },
-  { q: "What does a triangular sign showing a deer mean?", options: ["Zoo ahead", "Risk of wild animals crossing the road", "Hunting area", "No wildlife allowed"], correct: 1 },
-  { q: "How close behind another vehicle should you follow on a highway at higher speeds?", options: ["As close as possible to save fuel", "About a 3-second gap or more", "Exactly 1 meter", "It doesn't matter"], correct: 1 },
-  { q: "What must you do before overtaking another vehicle?", options: ["Just flash your lights", "Ensure the way ahead is clear and it's safe and legal to do so", "Only check your mirror once", "Sound your horn and go"], correct: 1 },
-  { q: "A sign showing a red triangle with an exclamation mark generally means:", options: ["General danger warning, details often on a sub-plate", "Give way", "No overtaking", "End of restriction"], correct: 0 },
-  { q: "What is the rule about using a mobile phone while driving in Finland?", options: ["Fully allowed anytime", "Only hands-free / mounted use without holding it is allowed", "Only allowed at red lights", "No rule exists"], correct: 1 },
-  { q: "When can you cross a solid single white line in the middle of the road?", options: ["Anytime it's safe", "Never, unless avoiding an obstacle or in an emergency", "Only during the day", "Only on motorways"], correct: 1 },
-  { q: "What does it mean if a school zone sign is posted?", options: ["No cars ever allowed", "Reduced speed and extra caution needed, children may be nearby", "Only buses may pass", "Sign is purely decorative"], correct: 1 },
-  { q: "What should you do at a railway level crossing when lights start flashing?", options: ["Speed across before the train arrives", "Stop and wait, do not cross", "Only stop if you see the train", "Sound horn and proceed"], correct: 1 }
-];
-
-// ---------- Room management ----------
-const rooms = {};
-const QUESTIONS_PER_GAME = 10;
-const ROUND_TIME_MS = 15000;
-
-function genCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code;
-  do {
-    code = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  } while (rooms[code]);
-  return code;
-}
-
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ajokortti Quiz — Finnish Driving Theory</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  :root {
+    --navy: #0B2545;
+    --navy-2: #13315C;
+    --navy-3: #1B4173;
+    --sign-yellow: #FFD400;
+    --sign-red: #D7263D;
+    --sign-blue: #1F6FEB;
+    --white: #F7F9FC;
+    --grey: #8CA0B3;
+    --success: #2FBF71;
+    --danger: #ff4d6d;
+    --font-display: 'Arial Black', 'Helvetica Neue', system-ui, sans-serif;
+    --font-body: -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
-  return a;
-}
-
-function publicPlayers(room) {
-  return Object.entries(room.players).map(([id, p]) => ({ id, name: p.name, score: p.score }));
-}
-
-function startQuestion(code) {
-  const room = rooms[code];
-  if (!room) return;
-  if (room.currentQIndex >= room.questionOrder.length) {
-    room.state = 'finished';
-    const players = publicPlayers(room).sort((a, b) => b.score - a.score);
-    io.to(code).emit('gameOver', { players });
-    return;
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at 20% -10%, #1e548c 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 110%, #7a1230 0%, transparent 45%),
+      linear-gradient(180deg, #0B2545 0%, #061225 100%);
+    background-attachment: fixed;
+    font-family: var(--font-body);
+    color: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
   }
-  const qData = QUESTIONS[room.questionOrder[room.currentQIndex]];
-  room.answersThisRound = {};
-  room.questionStartTime = Date.now();
-  room.state = 'question';
-  io.to(code).emit('question', {
-    index: room.currentQIndex + 1,
-    total: room.questionOrder.length,
-    q: qData.q,
-    options: qData.options,
-    timeMs: ROUND_TIME_MS
-  });
-  clearTimeout(room.timer);
-  room.timer = setTimeout(() => endQuestion(code), ROUND_TIME_MS);
+  .card {
+    width: 100%; max-width: 560px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 24px;
+    padding: 28px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: 26px; letter-spacing: 0.5px;
+    margin: 0 0 4px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .subtitle { color: var(--grey); margin-bottom: 22px; font-size: 14px; }
+  .road-sign-mini {
+    width: 44px; height: 44px;
+    background: var(--sign-red);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(215,38,61,0.45);
+  }
+  input[type=text] {
+    width: 100%; padding: 14px 16px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.05);
+    color: var(--white); font-size: 16px;
+    margin-bottom: 12px; outline: none;
+    transition: border-color .15s ease;
+  }
+  input[type=text]:focus { border-color: var(--sign-yellow); }
+  input[type=text]::placeholder { color: var(--grey); }
+  button {
+    width: 100%; padding: 14px;
+    border-radius: 12px; border: none;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; margin-bottom: 10px;
+    transition: transform .1s ease, filter .15s ease, box-shadow .15s ease;
+    font-family: var(--font-body);
+  }
+  button:hover:not(:disabled) { filter: brightness(1.08); }
+  button:active:not(:disabled) { transform: scale(0.98); }
+  .btn-primary { background: var(--sign-yellow); color: var(--navy); box-shadow: 0 6px 18px rgba(255,212,0,0.25); }
+  .btn-secondary { background: transparent; color: var(--white); border: 1.5px solid rgba(255,255,255,0.25); }
+  .btn-blue { background: var(--sign-blue); color: white; box-shadow: 0 6px 18px rgba(31,111,235,0.3); }
+  .btn-red { background: var(--sign-red); color: white; box-shadow: 0 6px 18px rgba(215,38,61,0.3); }
+  .hidden { display: none !important; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+  .room-code {
+    font-family: var(--font-display);
+    font-size: 44px; letter-spacing: 8px;
+    text-align: center; color: var(--sign-yellow);
+    margin: 6px 0 18px;
+    text-shadow: 0 4px 24px rgba(255,212,0,0.35);
+  }
+  .players-list { list-style: none; padding: 0; margin: 0 0 18px; }
+  .players-list li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px; margin-bottom: 8px;
+    font-weight: 600;
+    animation: popIn 0.25s ease;
+  }
+  .players-list li.dead { opacity: .45; text-decoration: line-through; }
+  .players-list li.me { border: 1.5px solid var(--sign-yellow); }
+  @keyframes popIn { from { opacity:0; transform: translateY(6px);} to {opacity:1; transform:translateY(0);} }
+  .score-pill { background: var(--sign-yellow); color: var(--navy); padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+  .streak-pill { background: rgba(255,77,109,0.2); color: var(--danger); border: 1px solid var(--danger); padding: 3px 8px; border-radius: 999px; font-size: 12px; margin-left: 6px; }
+  .progress-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(255,255,255,0.1); overflow: hidden; margin-bottom: 20px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--sign-yellow), var(--sign-red)); width: 100%; }
+  .q-header { display:flex; justify-content: space-between; align-items:center; margin-bottom:6px; }
+  .q-label { color: var(--grey); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; }
+  .q-streak { color: var(--sign-yellow); font-size: 13px; font-weight: 700; }
+
+  /* Question visuals */
+  .q-visual {
+    display: flex; justify-content: center; align-items: center;
+    margin: 0 0 16px;
+    min-height: 96px;
+  }
+  .q-emoji { font-size: 64px; line-height: 1; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4)); }
+  .sign {
+    width: 92px; height: 92px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 30px; font-weight: 900;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .sign.circle { border-radius: 50%; border-width: 8px; border-style: solid; }
+  .sign.square { border-radius: 10px; border-width: 4px; border-style: solid; }
+  .sign.octagon { clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); border: none; }
+  .sign.triangle {
+    background: transparent !important; box-shadow: none;
+    width: 100px; height: 92px; position: relative;
+  }
+  .sign.triangle .tri-inner {
+    position: absolute; inset: 0;
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    display:flex; align-items:flex-end; justify-content:center;
+    padding-bottom: 12px;
+    font-size: 30px;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+  }
+  .sign.triangle-down {
+    background: transparent !important; box-shadow: none;
+    width: 100px; height: 92px; position: relative;
+  }
+  .sign.triangle-down .tri-inner {
+    position: absolute; inset: 0;
+    clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+  }
+  .sign.diamond {
+    transform: rotate(45deg);
+    width: 78px; height: 78px;
+    border-width: 6px; border-style: solid;
+  }
+  .sign.diamond > span { transform: rotate(-45deg); }
+
+  .question-text { font-size: 20px; font-weight: 700; margin-bottom: 18px; line-height: 1.4; }
+  .option-btn {
+    width: 100%; text-align: left;
+    padding: 15px 16px; border-radius: 12px;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05);
+    color: var(--white); font-size: 15px; font-weight: 600;
+    margin-bottom: 10px; cursor: pointer;
+    transition: all .15s ease;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .opt-letter {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: rgba(255,255,255,0.12);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-size: 14px;
+    flex-shrink: 0;
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--sign-yellow); background: rgba(255,212,0,0.08); }
+  .option-btn.selected { border-color: var(--sign-yellow); background: rgba(255,212,0,0.15); }
+  .option-btn.correct { background: rgba(47,191,113,0.25); border-color: var(--success); color: white; }
+  .option-btn.correct .opt-letter { background: var(--success); }
+  .option-btn.wrong { background: rgba(215,38,61,0.25); border-color: var(--sign-red); color: white; }
+  .option-btn.wrong .opt-letter { background: var(--sign-red); }
+  .option-btn:disabled { cursor: default; }
+  .feedback {
+    text-align: center; font-size: 20px; font-weight: 800; margin: 4px 0 16px;
+    animation: popIn 0.3s ease;
+  }
+  .feedback.good { color: var(--success); }
+  .feedback.bad { color: var(--danger); }
+
+  .mode-tabs { display:flex; gap:8px; margin-bottom: 14px; background: rgba(0,0,0,0.2); padding:4px; border-radius: 12px; }
+  .mode-tabs button {
+    margin: 0; padding: 10px; font-size: 14px; background: transparent; color: var(--grey);
+    border-radius: 8px;
+  }
+  .mode-tabs button.active { background: var(--sign-yellow); color: var(--navy); }
+  .mode-tabs button:hover { filter: none; }
+
+  .podium { display: flex; align-items: flex-end; justify-content: center; gap: 14px; margin: 30px 0 20px; }
+  .podium-spot { text-align: center; }
+  .podium-bar {
+    width: 76px; border-radius: 10px 10px 0 0;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 8px; font-family: var(--font-display); font-size: 22px;
+    animation: growUp 0.6s ease;
+  }
+  @keyframes growUp { from { height: 0 !important; } }
+  .p1 .podium-bar { height: 140px; background: linear-gradient(180deg, var(--sign-yellow), #E0B200); color: var(--navy); }
+  .p2 .podium-bar { height: 100px; background: linear-gradient(180deg, #C8D1DB, #97A5B2); color: var(--navy); }
+  .p3 .podium-bar { height: 70px; background: linear-gradient(180deg, #CD8A4E, #A9682F); color: white; }
+  .podium-name { font-weight: 700; margin-top: 8px; font-size: 14px; }
+  .podium-score { color: var(--sign-yellow); font-size: 13px; }
+  .confetti { position: fixed; top: -10px; width: 8px; height: 14px; opacity: .9; animation: fall linear forwards; z-index: 5; pointer-events:none; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 1; } }
+  .error-msg { color: var(--sign-yellow); background: rgba(215,38,61,0.25); border: 1px solid var(--sign-red); padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 14px; }
+  .stripe { height: 4px; background: repeating-linear-gradient(90deg, var(--sign-yellow) 0 16px, transparent 16px 30px); border-radius: 4px; margin: 16px 0 20px; opacity: .6; }
+  .final-score { text-align:center; font-family: var(--font-display); font-size: 42px; color: var(--sign-yellow); margin: 10px 0 6px; }
+  .final-sub { text-align:center; color: var(--grey); margin-bottom: 18px; }
+</style>
+</head>
+<body>
+
+<div class="card" id="app">
+
+  <!-- HOME -->
+  <div id="view-home">
+    <h1><span class="road-sign-mini">🚦</span> Ajokortti Quiz</h1>
+    <div class="subtitle">Finnish driving theory — solo survival or race your friends</div>
+    <div class="stripe"></div>
+    <div id="home-error"></div>
+    <input type="text" id="name-input" placeholder="Your name" maxlength="16" />
+
+    <div class="mode-tabs">
+      <button id="tab-classic" class="active" type="button">👥 Multiplayer</button>
+      <button id="tab-solo" type="button">🎯 Solo survival</button>
+    </div>
+
+    <div id="pane-classic">
+      <div class="mode-tabs">
+        <button id="mode-classic" class="active" type="button">15 questions</button>
+        <button id="mode-endless" type="button">Endless (until wrong)</button>
+      </div>
+      <button class="btn-primary" id="btn-create">Create a room</button>
+      <input type="text" id="join-code-input" placeholder="Room code" maxlength="5" style="text-transform:uppercase" />
+      <button class="btn-blue" id="btn-join">Join room</button>
+    </div>
+
+    <div id="pane-solo" class="hidden">
+      <p style="color:var(--grey); font-size:14px; margin:0 0 14px;">
+        Answer as many questions as you can. One wrong answer or timeout ends the run.
+      </p>
+      <button class="btn-primary" id="btn-solo">Start solo run</button>
+    </div>
+  </div>
+
+  <!-- LOBBY -->
+  <div id="view-lobby" class="hidden">
+    <h1><span class="road-sign-mini">🏁</span> Lobby</h1>
+    <div class="subtitle" id="lobby-mode-sub">Mode: 15 questions</div>
+    <div class="room-code" id="lobby-code">-----</div>
+    <ul class="players-list" id="lobby-players"></ul>
+    <button class="btn-primary hidden" id="btn-start">Start game</button>
+    <div id="lobby-wait-msg" class="subtitle" style="text-align:center;">Waiting for the host to start...</div>
+  </div>
+
+  <!-- QUESTION -->
+  <div id="view-question" class="hidden">
+    <div class="q-header">
+      <div class="q-label" id="q-progress">Question 1</div>
+      <div class="q-streak" id="q-streak"></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="timer-bar"></div></div>
+    <div class="q-visual" id="q-visual"></div>
+    <div class="question-text" id="q-text"></div>
+    <div id="options-container"></div>
+  </div>
+
+  <!-- REVEAL -->
+  <div id="view-reveal" class="hidden">
+    <div class="feedback" id="reveal-feedback"></div>
+    <div class="q-visual" id="reveal-visual" style="min-height:60px;"></div>
+    <div class="question-text" id="reveal-q" style="font-size:16px; color:var(--grey);"></div>
+    <div id="reveal-options"></div>
+    <div class="subtitle" style="text-align:center; margin:14px 0 8px;">Standings</div>
+    <ul class="players-list" id="reveal-players"></ul>
+  </div>
+
+  <!-- GAME OVER -->
+  <div id="view-gameover" class="hidden">
+    <h1 style="justify-content:center;"><span class="road-sign-mini">🏆</span> <span id="go-title">Game Over!</span></h1>
+    <div id="solo-summary" class="hidden">
+      <div class="final-score" id="solo-final-score">0</div>
+      <div class="final-sub" id="solo-final-sub">You answered 0 questions correctly.</div>
+    </div>
+    <div id="podium-wrap">
+      <div class="podium" id="podium"></div>
+    </div>
+    <ul class="players-list" id="final-players"></ul>
+    <button class="btn-primary hidden" id="btn-again">Play again</button>
+    <button class="btn-secondary" id="btn-home">Back to home</button>
+  </div>
+
+</div>
+
+<script>
+const socket = io();
+let myCode = null;
+let isHost = false;
+let mySocketId = null;
+let currentMode = 'classic';
+let selectedMode = 'classic';   // classic|endless (for multiplayer)
+let activeTab = 'classic';      // classic|solo
+let lastQuestion = null;
+let myChoice = null;
+
+socket.on('connect', () => { mySocketId = socket.id; });
+
+const views = ['home','lobby','question','reveal','gameover'];
+function show(view) {
+  views.forEach(v => document.getElementById('view-'+v).classList.toggle('hidden', v !== view));
+}
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function showHomeError(msg) {
+  document.getElementById('home-error').innerHTML = '<div class="error-msg">'+escapeHtml(msg)+'</div>';
 }
 
-function endQuestion(code) {
-  const room = rooms[code];
-  if (!room || room.state !== 'question') return;
-  room.state = 'reveal';
-  const qData = QUESTIONS[room.questionOrder[room.currentQIndex]];
-  io.to(code).emit('reveal', {
-    correct: qData.correct,
-    players: publicPlayers(room).sort((a, b) => b.score - a.score)
-  });
-  room.currentQIndex += 1;
-  clearTimeout(room.timer);
-  room.timer = setTimeout(() => startQuestion(code), 3500);
+// ---------- Tabs ----------
+document.getElementById('tab-classic').onclick = () => switchTab('classic');
+document.getElementById('tab-solo').onclick    = () => switchTab('solo');
+function switchTab(t) {
+  activeTab = t;
+  document.getElementById('tab-classic').classList.toggle('active', t==='classic');
+  document.getElementById('tab-solo').classList.toggle('active', t==='solo');
+  document.getElementById('pane-classic').classList.toggle('hidden', t!=='classic');
+  document.getElementById('pane-solo').classList.toggle('hidden', t!=='solo');
+}
+document.getElementById('mode-classic').onclick = () => setSelectedMode('classic');
+document.getElementById('mode-endless').onclick = () => setSelectedMode('endless');
+function setSelectedMode(m) {
+  selectedMode = m;
+  document.getElementById('mode-classic').classList.toggle('active', m==='classic');
+  document.getElementById('mode-endless').classList.toggle('active', m==='endless');
 }
 
-io.on('connection', (socket) => {
-  socket.on('createRoom', (name) => {
-    const code = genCode();
-    rooms[code] = {
-      players: { [socket.id]: { name: name?.trim().slice(0, 16) || 'Player', score: 0 } },
-      hostId: socket.id,
-      state: 'lobby',
-      currentQIndex: 0,
-      questionOrder: [],
-      answersThisRound: {},
-      timer: null
-    };
-    socket.join(code);
-    socket.emit('roomCreated', { code, players: publicPlayers(rooms[code]), isHost: true });
-  });
+// ---------- HOME actions ----------
+document.getElementById('btn-create').onclick = () => {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name) return showHomeError('Enter your name first.');
+  socket.emit('createRoom', { name, mode: selectedMode });
+};
+document.getElementById('btn-join').onclick = () => {
+  const name = document.getElementById('name-input').value.trim();
+  const code = document.getElementById('join-code-input').value.trim();
+  if (!name) return showHomeError('Enter your name first.');
+  if (!code) return showHomeError('Enter a room code.');
+  socket.emit('joinRoom', { code, name });
+};
+document.getElementById('btn-solo').onclick = () => {
+  const name = document.getElementById('name-input').value.trim() || 'You';
+  socket.emit('startSolo', { name });
+};
+document.getElementById('btn-home').onclick = () => {
+  location.reload();
+};
 
-  socket.on('joinRoom', ({ code, name }) => {
-    code = (code || '').toUpperCase().trim();
-    const room = rooms[code];
-    if (!room) { socket.emit('errorMsg', 'Room not found. Check the code and try again.'); return; }
-    if (room.state !== 'lobby') { socket.emit('errorMsg', 'That game already started.'); return; }
-    room.players[socket.id] = { name: name?.trim().slice(0, 16) || 'Player', score: 0 };
-    socket.join(code);
-    io.to(code).emit('lobbyUpdate', { players: publicPlayers(room) });
-    socket.emit('roomJoined', { code, players: publicPlayers(room), isHost: false });
-  });
+socket.on('errorMsg', (msg) => showHomeError(msg));
 
-  socket.on('startGame', (code) => {
-    const room = rooms[code];
-    if (!room || room.hostId !== socket.id || room.state !== 'lobby') return;
-    const order = shuffle(QUESTIONS.map((_, i) => i)).slice(0, Math.min(QUESTIONS_PER_GAME, QUESTIONS.length));
-    room.questionOrder = order;
-    room.currentQIndex = 0;
-    Object.values(room.players).forEach(p => p.score = 0);
-    startQuestion(code);
-  });
-
-  socket.on('submitAnswer', ({ code, choice }) => {
-    const room = rooms[code];
-    if (!room || room.state !== 'question') return;
-    if (room.answersThisRound[socket.id] !== undefined) return;
-    const qData = QUESTIONS[room.questionOrder[room.currentQIndex]];
-    const elapsed = Date.now() - room.questionStartTime;
-    room.answersThisRound[socket.id] = choice;
-    let gained = 0;
-    if (choice === qData.correct) {
-      const speedBonus = Math.max(0, Math.round(500 * (1 - elapsed / ROUND_TIME_MS)));
-      gained = 500 + speedBonus;
-      room.players[socket.id].score += gained;
-    }
-    socket.emit('answerReceived', { correct: choice === qData.correct, gained });
-    const allAnswered = Object.keys(room.players).every(id => room.answersThisRound[id] !== undefined);
-    if (allAnswered) endQuestion(code);
-  });
-
-  socket.on('playAgain', (code) => {
-    const room = rooms[code];
-    if (!room || room.hostId !== socket.id) return;
-    room.state = 'lobby';
-    Object.values(room.players).forEach(p => p.score = 0);
-    io.to(code).emit('backToLobby', { players: publicPlayers(room) });
-  });
-
-  socket.on('disconnect', () => {
-    for (const code of Object.keys(rooms)) {
-      const room = rooms[code];
-      if (room.players[socket.id]) {
-        delete room.players[socket.id];
-        if (Object.keys(room.players).length === 0) {
-          clearTimeout(room.timer);
-          delete rooms[code];
-        } else {
-          if (room.hostId === socket.id) room.hostId = Object.keys(room.players)[0];
-          io.to(code).emit('lobbyUpdate', { players: publicPlayers(room) });
-        }
-      }
-    }
-  });
+socket.on('roomCreated', ({ code, players, isHost: host, mode, solo }) => {
+  myCode = code; isHost = host; currentMode = mode;
+  if (solo) return; // solo: skip lobby, question will arrive shortly
+  enterLobby(code, players);
+});
+socket.on('roomJoined', ({ code, players, isHost: host, mode }) => {
+  myCode = code; isHost = host; currentMode = mode;
+  enterLobby(code, players);
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Ajokortti Quiz running on port ${PORT}`));
+function enterLobby(code, players) {
+  document.getElementById('lobby-code').textContent = code;
+  document.getElementById('lobby-mode-sub').textContent =
+    'Mode: ' + (currentMode === 'endless' ? 'Endless (until wrong)' : '15 questions');
+  renderPlayers('lobby-players', players);
+  document.getElementById('btn-start').classList.toggle('hidden', !isHost);
+  document.getElementById('lobby-wait-msg').classList.toggle('hidden', isHost);
+  show('lobby');
+}
+
+socket.on('lobbyUpdate', ({ players }) => renderPlayers('lobby-players', players));
+socket.on('modeChanged', ({ mode }) => {
+  currentMode = mode;
+  document.getElementById('lobby-mode-sub').textContent =
+    'Mode: ' + (mode === 'endless' ? 'Endless (until wrong)' : '15 questions');
+});
+
+document.getElementById('btn-start').onclick = () => socket.emit('startGame', myCode);
+
+function renderPlayers(elId, players) {
+  const el = document.getElementById(elId);
+  el.innerHTML = players.map(p => {
+    const cls = [];
+    if (!p.alive) cls.push('dead');
+    if (p.id === mySocketId) cls.push('me');
+    const streak = p.streak > 0 ? '<span class="streak-pill">🔥 '+p.streak+'</span>' : '';
+    return '<li class="'+cls.join(' ')+'"><span>'+escapeHtml(p.name)+streak+'</span><span class="score-pill">'+p.score+' pts</span></li>';
+  }).join('');
+}
+
+// ---------- Visuals ----------
+function renderVisual(container, qData) {
+  container.innerHTML = '';
+  if (qData.sign) {
+    const s = qData.sign;
+    const el = document.createElement('div');
+    el.className = 'sign ' + s.shape;
+    if (s.shape === 'triangle' || s.shape === 'triangle-down') {
+      el.innerHTML = '<div class="tri-inner" style="background:'+s.border+';"><div style="position:absolute;inset:6px;background:'+s.bg+';clip-path:inherit;display:flex;align-items:'+(s.shape==='triangle'?'flex-end':'flex-start')+';justify-content:center;padding:'+(s.shape==='triangle'?'0 0 10px':'8px 0 0')+';color:'+(s.textColor||'#0B2545')+';font-size:26px;font-weight:900;">'+escapeHtml(s.text||'')+'</div></div>';
+    } else if (s.shape === 'octagon') {
+      el.style.background = s.bg;
+      el.style.color = s.textColor || '#fff';
+      el.textContent = s.text || '';
+    } else if (s.shape === 'diamond') {
+      el.style.background = s.bg;
+      el.style.borderColor = s.border;
+      el.style.color = s.textColor || '#0B2545';
+      el.innerHTML = '<span>'+escapeHtml(s.text||'')+'</span>';
+    } else {
+      el.style.background = s.bg;
+      el.style.borderColor = s.border;
+      el.style.color = s.textColor || '#0B2545';
+      el.textContent = s.text || '';
+    }
+    container.appendChild(el);
+  } else if (qData.icon) {
+    const el = document.createElement('div');
+    el.className = 'q-emoji';
+    el.textContent = qData.icon;
+    container.appendChild(el);
+  }
+}
+
+// ---------- QUESTION ----------
+let timerRaf = null;
+socket.on('question', ({ index, total, q, options, icon, sign, timeMs, mode, players }) => {
+  lastQuestion = { q, options, icon, sign };
+  myChoice = null;
+  show('question');
+  currentMode = mode;
+  const label = total ? ('Question ' + index + ' / ' + total) : ('Question ' + index + ' · endless');
+  document.getElementById('q-progress').textContent = label;
+  const me = (players || []).find(p => p.id === mySocketId);
+  document.getElementById('q-streak').textContent = (me && me.streak > 0) ? '🔥 streak '+me.streak : '';
+
+  renderVisual(document.getElementById('q-visual'), { icon, sign });
+  document.getElementById('q-text').textContent = q;
+
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  const letters = ['A','B','C','D','E','F'];
+  options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.type = 'button';
+    btn.innerHTML = '<span class="opt-letter">'+letters[i]+'</span><span>'+escapeHtml(opt)+'</span>';
+    btn.onclick = () => selectAnswer(i, btn);
+    container.appendChild(btn);
+  });
+
+  const bar = document.getElementById('timer-bar');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  // reflow, then animate
+  void bar.offsetWidth;
+  bar.style.transition = 'width '+timeMs+'ms linear';
+  bar.style.width = '0%';
+});
+
+function selectAnswer(i, btn) {
+  if (myChoice !== null) return;
+  myChoice = i;
+  document.querySelectorAll('.option-btn').forEach(b => { b.disabled = true; b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  socket.emit('submitAnswer', { code: myCode, choice: i });
+}
+
+socket.on('answerReceived', () => { /* reveal will handle visual */ });
+
+socket.on('reveal', ({ correct, players }) => {
+  // Mark options on the live question view first (visible during pause)
+  document.querySelectorAll('#options-container .option-btn').forEach((b, i) => {
+    if (i === correct) b.classList.add('correct');
+    else if (i === myChoice) b.classList.add('wrong');
+  });
+
+  // Then transition to reveal view with same info
+  setTimeout(() => {
+    const me = (players || []).find(p => p.id === mySocketId);
+    const iWasCorrect = myChoice === correct;
+    const iAnswered = myChoice !== null;
+    const fb = document.getElementById('reveal-feedback');
+    if (!iAnswered) { fb.textContent = '⏱ Time up!'; fb.className = 'feedback bad'; }
+    else if (iWasCorrect) { fb.textContent = '✅ Correct!'; fb.className = 'feedback good'; }
+    else { fb.textContent = '❌ Wrong answer'; fb.className = 'feedback bad'; }
+
+    if (lastQuestion) {
+      renderVisual(document.getElementById('reveal-visual'), lastQuestion);
+      document.getElementById('reveal-q').textContent = lastQuestion.q;
+      const wrap = document.getElementById('reveal-options');
+      wrap.innerHTML = '';
+      const letters = ['A','B','C','D','E','F'];
+      lastQuestion.options.forEach((opt, i) => {
+        const div = document.createElement('div');
+        div.className = 'option-btn';
+        if (i === correct) div.classList.add('correct');
+        else if (i === myChoice) div.classList.add('wrong');
+        div.innerHTML = '<span class="opt-letter">'+letters[i]+'</span><span>'+escapeHtml(opt)+'</span>';
+        wrap.appendChild(div);
+      });
+    }
+    renderPlayers('reveal-players', players);
+    show('reveal');
+  }, 900);
+});
+
+// ---------- GAME OVER ----------
+socket.on('gameOver', ({ players, mode }) => {
+  show('gameover');
+  const me = players.find(p => p.id === mySocketId);
+  const soloMode = players.length === 1 && mode === 'endless';
+  document.getElementById('solo-summary').classList.toggle('hidden', !soloMode);
+  document.getElementById('podium-wrap').classList.toggle('hidden', soloMode);
+  document.getElementById('final-players').classList.toggle('hidden', soloMode);
+
+  if (soloMode && me) {
+    document.getElementById('go-title').textContent = 'Run over!';
+    document.getElementById('solo-final-score').textContent = me.streak + ' correct';
+    document.getElementById('solo-final-sub').textContent =
+      'Score: ' + me.score + ' pts · Streak: 🔥 ' + me.streak;
+  } else {
+    document.getElementById('go-title').textContent = mode === 'endless' ? 'Last driver standing!' : 'Game Over!';
+    renderPlayers('final-players', players);
+    buildPodium(players);
+  }
+  launchConfetti();
+  document.getElementById('btn-again').classList.toggle('hidden', !isHost);
+});
+
+function buildPodium(players) {
+  const podium = document.getElementById('podium');
+  podium.innerHTML = '';
+  const order = [1,0,2];
+  const medals = {0:'🥇',1:'🥈',2:'🥉'};
+  order.forEach(rank => {
+    const p = players[rank];
+    if (!p) return;
+    const div = document.createElement('div');
+    div.className = 'podium-spot p'+(rank+1);
+    div.innerHTML =
+      '<div class="podium-bar">'+medals[rank]+'</div>'+
+      '<div class="podium-name">'+escapeHtml(p.name)+'</div>'+
+      '<div class="podium-score">'+p.score+' pts</div>';
+    podium.appendChild(div);
+  });
+}
+
+function launchConfetti() {
+  const colors = ['#FFD400','#D7263D','#1F6FEB','#2FBF71','#F7F9FC'];
+  for (let i = 0; i < 70; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    el.style.left = Math.random()*100+'vw';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDuration = (2 + Math.random()*2)+'s';
+    el.style.animationDelay = (Math.random()*0.5)+'s';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4500);
+  }
+}
+
+document.getElementById('btn-again').onclick = () => socket.emit('playAgain', myCode);
+socket.on('backToLobby', ({ players, mode }) => { currentMode = mode; enterLobby(myCode, players); });
+</script>
+</body>
+</html>
