@@ -1,7 +1,7 @@
 {
   "name": "ajokortti-quiz",
-  "version": "1.0.0",
-  "description": "Multiplayer Finnish driving theory quiz game",
+  "version": "2.0.0",
+  "description": "Multiplayer + single-player Finnish driving theory quiz game",
   "main": "server.js",
   "engines": {
     "node": ">=18.0.0"
