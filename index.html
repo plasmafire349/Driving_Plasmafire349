@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ajokortti Quiz — Multiplayer Driving Theory</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  :root {
+    --navy: #0B2545;
+    --navy-2: #13315C;
+    --sign-yellow: #FFD400;
+    --sign-red: #D7263D;
+    --sign-blue: #1F6FEB;
+    --white: #F7F9FC;
+    --grey: #8CA0B3;
+    --success: #2FBF71;
+    --font-display: 'Arial Black', 'Helvetica Neue', sans-serif;
+    --font-body: 'Segoe UI', Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #16406e 0%, var(--navy) 55%, #061225 100%);
+    font-family: var(--font-body);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    width: 100%;
+    max-width: 520px;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 32px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .subtitle { color: var(--grey); margin-bottom: 24px; font-size: 14px; }
+  .road-sign {
+    width: 46px; height: 46px;
+    background: var(--sign-red);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    color: var(--white);
+    font-size: 22px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(215,38,61,0.4);
+  }
+  input[type=text] {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: var(--white);
+    font-size: 16px;
+    margin-bottom: 14px;
+    outline: none;
+  }
+  input[type=text]:focus { border-color: var(--sign-yellow); }
+  input[type=text]::placeholder { color: var(--grey); }
+  button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: transform 0.1s ease, filter 0.15s ease;
+    font-family: var(--font-body);
+  }
+  button:hover { filter: brightness(1.08); }
+  button:active { transform: scale(0.98); }
+  .btn-primary { background: var(--sign-yellow); color: var(--navy); }
+  .btn-secondary { background: transparent; color: var(--white); border: 2px solid rgba(255,255,255,0.25); }
+  .btn-blue { background: var(--sign-blue); color: white; }
+  .hidden { display: none !important; }
+  .room-code {
+    font-family: var(--font-display);
+    font-size: 40px;
+    letter-spacing: 6px;
+    text-align: center;
+    color: var(--sign-yellow);
+    margin: 10px 0 20px;
+  }
+  .players-list { list-style: none; padding: 0; margin: 0 0 20px; }
+  .players-list li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    animation: popIn 0.25s ease;
+  }
+  @keyframes popIn { from { opacity:0; transform: translateY(6px);} to {opacity:1; transform:translateY(0);} }
+  .score-pill {
+    background: var(--sign-yellow); color: var(--navy);
+    padding: 3px 10px; border-radius: 999px; font-size: 13px;
+  }
+  .progress-track {
+    width: 100%; height: 10px; border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--sign-yellow), var(--sign-red));
+    width: 100%;
+    transition: width 0.1s linear;
+  }
+  .q-label { color: var(--grey); font-size: 13px; margin-bottom: 6px; letter-spacing: 1px; text-transform: uppercase; }
+  .question-text { font-size: 20px; font-weight: 700; margin-bottom: 20px; line-height: 1.4; }
+  .option-btn {
+    width: 100%;
+    text-align: left;
+    padding: 16px;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: var(--white);
+    font-size: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--sign-yellow); background: rgba(255,212,0,0.08); }
+  .option-btn.correct { background: var(--success); border-color: var(--success); color: white; }
+  .option-btn.wrong { background: var(--sign-red); border-color: var(--sign-red); color: white; }
+  .option-btn:disabled { cursor: default; opacity: 0.7; }
+  .feedback {
+    text-align: center; font-size: 18px; font-weight: 700; margin: 10px 0 20px;
+    animation: popIn 0.3s ease;
+  }
+  .podium {
+    display: flex; align-items: flex-end; justify-content: center; gap: 12px;
+    margin: 30px 0 20px;
+  }
+  .podium-spot { text-align: center; }
+  .podium-bar {
+    width: 76px; border-radius: 10px 10px 0 0;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 8px; font-family: var(--font-display); font-size: 22px;
+    animation: growUp 0.6s ease;
+  }
+  @keyframes growUp { from { height: 0 !important; } }
+  .p1 .podium-bar { height: 140px; background: linear-gradient(180deg, var(--sign-yellow), #E0B200); color: var(--navy); }
+  .p2 .podium-bar { height: 100px; background: linear-gradient(180deg, #C8D1DB, #97A5B2); color: var(--navy); }
+  .p3 .podium-bar { height: 70px; background: linear-gradient(180deg, #CD8A4E, #A9682F); color: white; }
+  .podium-name { font-weight: 700; margin-top: 8px; font-size: 14px; }
+  .podium-score { color: var(--sign-yellow); font-size: 13px; }
+  .confetti { position: fixed; top: -10px; width: 8px; height: 14px; opacity: 0.9; animation: fall linear forwards; z-index: 5; }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(360deg); opacity: 1; }
+  }
+  .error-msg { color: var(--sign-yellow); background: rgba(215,38,61,0.25); border: 1px solid var(--sign-red); padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 14px; }
+  .code-hint { text-align: center; color: var(--grey); font-size: 13px; margin-top: -8px; margin-bottom: 16px; }
+  .stripe { height: 4px; background: repeating-linear-gradient(90deg, var(--sign-yellow) 0 16px, transparent 16px 30px); border-radius: 4px; margin: 18px 0 24px; opacity: 0.6; }
+</style>
+</head>
+<body>
+
+<div class="card" id="app">
+
+  <!-- HOME -->
+  <div id="view-home">
+    <h1><span class="road-sign">🚦</span> Ajokortti Quiz</h1>
+    <div class="subtitle">Finnish driving theory — race your friends to the top score</div>
+    <div class="stripe"></div>
+    <div id="home-error"></div>
+    <input type="text" id="name-input" placeholder="Your name" maxlength="16" />
+    <button class="btn-primary" id="btn-create">Create a room</button>
+    <input type="text" id="join-code-input" placeholder="Room code" maxlength="5" style="text-transform:uppercase" />
+    <button class="btn-blue" id="btn-join">Join room</button>
+  </div>
+
+  <!-- LOBBY -->
+  <div id="view-lobby" class="hidden">
+    <h1><span class="road-sign">🏁</span> Lobby</h1>
+    <div class="subtitle">Share this code with your friends</div>
+    <div class="room-code" id="lobby-code">-----</div>
+    <div class="code-hint">Waiting for players to join...</div>
+    <ul class="players-list" id="lobby-players"></ul>
+    <button class="btn-primary hidden" id="btn-start">Start game</button>
+    <div id="lobby-wait-msg" class="subtitle" style="text-align:center;">Waiting for the host to start...</div>
+  </div>
+
+  <!-- QUESTION -->
+  <div id="view-question" class="hidden">
+    <div class="q-label" id="q-progress">Question 1 / 10</div>
+    <div class="progress-track"><div class="progress-fill" id="timer-bar"></div></div>
+    <div class="question-text" id="q-text"></div>
+    <div id="options-container"></div>
+  </div>
+
+  <!-- REVEAL -->
+  <div id="view-reveal" class="hidden">
+    <div class="feedback" id="reveal-feedback"></div>
+    <div class="subtitle" style="text-align:center; margin-bottom:14px;">Standings</div>
+    <ul class="players-list" id="reveal-players"></ul>
+  </div>
+
+  <!-- GAME OVER -->
+  <div id="view-gameover" class="hidden">
+    <h1 style="justify-content:center;"><span class="road-sign">🏆</span> Game Over!</h1>
+    <div class="podium" id="podium"></div>
+    <ul class="players-list" id="final-players"></ul>
+    <button class="btn-primary hidden" id="btn-again">Play again</button>
+    <div id="gameover-wait" class="subtitle hidden" style="text-align:center;">Waiting for host to restart...</div>
+  </div>
+
+</div>
+
+<script>
+const socket = io();
+let myCode = null;
+let isHost = false;
+let timerInterval = null;
+
+const views = ['home','lobby','question','reveal','gameover'];
+function show(view) {
+  views.forEach(v => document.getElementById('view-'+v).classList.toggle('hidden', v !== view));
+}
+
+// ---------- HOME ----------
+document.getElementById('btn-create').onclick = () => {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name) return showHomeError('Enter your name first.');
+  socket.emit('createRoom', name);
+};
+document.getElementById('btn-join').onclick = () => {
+  const name = document.getElementById('name-input').value.trim();
+  const code = document.getElementById('join-code-input').value.trim();
+  if (!name) return showHomeError('Enter your name first.');
+  if (!code) return showHomeError('Enter a room code.');
+  socket.emit('joinRoom', { code, name });
+};
+function showHomeError(msg) {
+  document.getElementById('home-error').innerHTML = `<div class="error-msg">${msg}</div>`;
+}
+
+socket.on('errorMsg', (msg) => showHomeError(msg));
+
+socket.on('roomCreated', ({ code, players, isHost: host }) => {
+  myCode = code; isHost = host;
+  enterLobby(code, players);
+});
+socket.on('roomJoined', ({ code, players, isHost: host }) => {
+  myCode = code; isHost = host;
+  enterLobby(code, players);
+});
+
+function enterLobby(code, players) {
+  document.getElementById('lobby-code').textContent = code;
+  renderPlayers('lobby-players', players);
+  document.getElementById('btn-start').classList.toggle('hidden', !isHost);
+  document.getElementById('lobby-wait-msg').classList.toggle('hidden', isHost);
+  show('lobby');
+}
+
+socket.on('lobbyUpdate', ({ players }) => {
+  renderPlayers('lobby-players', players);
+});
+
+document.getElementById('btn-start').onclick = () => {
+  socket.emit('startGame', myCode);
+};
+
+function renderPlayers(elId, players) {
+  const el = document.getElementById(elId);
+  el.innerHTML = players.map(p => `<li><span>${escapeHtml(p.name)}</span><span class="score-pill">${p.score} pts</span></li>`).join('');
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+}
+
+// ---------- QUESTION ----------
+socket.on('question', ({ index, total, q, options, timeMs }) => {
+  show('question');
+  document.getElementById('q-progress').textContent = `Question ${index} / ${total}`;
+  document.getElementById('q-text').textContent = q;
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(i, btn);
+    container.appendChild(btn);
+  });
+
+  const bar = document.getElementById('timer-bar');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  requestAnimationFrame(() => {
+    bar.style.transition = `width ${timeMs}ms linear`;
+    bar.style.width = '0%';
+  });
+});
+
+let answered = false;
+function selectAnswer(i, btn) {
+  if (answered) return;
+  answered = true;
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  btn.style.borderColor = 'var(--sign-yellow)';
+  socket.emit('submitAnswer', { code: myCode, choice: i });
+}
+
+socket.on('answerReceived', ({ correct, gained }) => {
+  // subtle immediate feedback handled at reveal
+});
+
+socket.on('reveal', ({ correct, players }) => {
+  answered = false;
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((b, i) => {
+    if (i === correct) b.classList.add('correct');
+  });
+  document.getElementById('reveal-feedback').textContent = 'Correct answer highlighted!';
+  renderPlayers('reveal-players', players);
+  show('reveal');
+});
+
+// ---------- GAME OVER ----------
+socket.on('gameOver', ({ players }) => {
+  show('gameover');
+  renderPlayers('final-players', players);
+  buildPodium(players);
+  launchConfetti();
+  document.getElementById('btn-again').classList.toggle('hidden', !isHost);
+  document.getElementById('gameover-wait').classList.toggle('hidden', isHost);
+});
+
+function buildPodium(players) {
+  const podium = document.getElementById('podium');
+  podium.innerHTML = '';
+  const order = [1,0,2]; // 2nd, 1st, 3rd visual order
+  const medals = {0:'🥇',1:'🥈',2:'🥉'};
+  order.forEach(rank => {
+    const p = players[rank];
+    if (!p) return;
+    const div = document.createElement('div');
+    div.className = `podium-spot p${rank+1}`;
+    div.innerHTML = `
+      <div class="podium-bar">${medals[rank]}</div>
+      <div class="podium-name">${escapeHtml(p.name)}</div>
+      <div class="podium-score">${p.score} pts</div>
+    `;
+    podium.appendChild(div);
+  });
+}
+
+function launchConfetti() {
+  const colors = ['#FFD400','#D7263D','#1F6FEB','#2FBF71','#F7F9FC'];
+  for (let i = 0; i < 60; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDuration = (2 + Math.random() * 2) + 's';
+    el.style.animationDelay = (Math.random() * 0.5) + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4500);
+  }
+}
+
+document.getElementById('btn-again').onclick = () => {
+  socket.emit('playAgain', myCode);
+};
+
+socket.on('backToLobby', ({ players }) => {
+  enterLobby(myCode, players);
+});
+</script>
+</body>
+</html>
